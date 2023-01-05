@@ -66,14 +66,15 @@ def save_continuum_normalized_templates(template_list, savedir, get_mask = full_
         with open(normalized_filename,'w') as f:
             np.savetxt(f, normalized_data)
         normalized_template_list.append(normalized_filename)
+        print(f"Saved {normalized_filename}")
     return normalized_template_list
 
 
-def get_bestfit(wavs, fluxes, template_list, get_mask=full_spec_mask, v=0):
+def get_bestfit(wavs, fluxes, template_list, get_mask=full_spec_mask, v=0, continuum_normalize=True):
     wavs, norm_obs_flux = get_norm_values(wavs, fluxes)
     chi2s = []
     for template_file in template_list:
-        chi2 = calculate_chi2(wavs, norm_obs_flux, template_file, get_mask=get_mask, v=v)
+        chi2 = calculate_chi2(wavs, norm_obs_flux, template_file, get_mask=get_mask, v=v, continuum_normalize=continuum_normalize)
         chi2s.append(chi2)
     # chi2s = np.array(chi2s)
     # sinds = np.argsort(chi2s)
