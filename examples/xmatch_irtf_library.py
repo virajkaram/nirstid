@@ -7,15 +7,11 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 
 
-if __name__ == '__main__':
-
-    objectname = 'data/rcb2716_2716_80_merged.fits'
-    template_list = glob('data/irtf_templates/M/*.txt')
-
+def xmatch_to_irtf_spec(objectname, template_list, plotfilename):
     mask_functions = [j_band_mask, h_band_mask, k_band_mask]
 
-    fig = plt.figure(figsize=(12,8))
-    gs = GridSpec(3, 1, hspace = 0.5)
+    fig = plt.figure(figsize=(12, 8))
+    gs = GridSpec(3, 1, hspace=0.5)
 
     for ind, mask_function in enumerate(mask_functions):
         wavs, fluxes = get_object_data(objectname, get_mask=mask_function)
@@ -25,4 +21,14 @@ if __name__ == '__main__':
         ax.set_title(f"{bestfit_filename.split('/')[-1]}, {round(minchi2, 2)}")
         ax.set_ylim(0, 2)
 
-    plt.savefig('data/rcb2716_bestmatch.pdf', bbox_inches='tight')
+    plt.savefig(plotfilename, bbox_inches='tight')
+
+
+if __name__ == '__main__':
+    objectname = 'data/rcb2716_2716_80_merged.fits'
+    template_list = glob('data/irtf_templates/M/*.txt')
+    plotfilename = 'data/rcb2716_bestmatch.pdf'
+
+    xmatch_to_irtf_spec(objectname, template_list, plotfilename)
+
+
