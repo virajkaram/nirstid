@@ -5,6 +5,7 @@ import astropy.units as u
 from nirstid.masks import full_spec_mask
 from nirstid.io import get_template_data
 from nirstid.constants import c
+import os
 
 
 def get_norm_values(wavs, fluxes):
@@ -21,7 +22,7 @@ def get_norm_template(template_filename, get_mask=full_spec_mask):
     return temp_wavs, temp_norm_flux
 
 
-def calculate_chi2(wavs, norm_obs_flux, template_filename, get_mask=full_spec_mask, v=0):
+def calculate_chi2(wavs, norm_obs_flux, template_filename, get_mask=full_spec_mask, v=0, continuum_normalize=True):
     '''
     template = ascii.read(template_filename)
     template = template[template['col2']>0]
@@ -44,12 +45,28 @@ def calculate_chi2(wavs, norm_obs_flux, template_filename, get_mask=full_spec_ma
     norm_corr_wavs = wavs*(1+v/c)
     norm_interp_temp_flux = np.interp(norm_corr_wavs, temp_wavs, norm_temp_flux)
     '''
-    temp_wavs, norm_temp_flux = get_norm_template(template_filename, get_mask=get_mask)
+    if continuum_normalize:
+        temp_wavs, norm_temp_flux = get_norm_template(template_filename, get_mask=get_mask)
+    else:
+        temp_wavs, norm_temp_flux = get_template_data(template_filename, get_mask=get_mask)
     norm_corr_wavs = wavs * (1 + v / c)
     norm_interp_temp_flux = np.interp(norm_corr_wavs, temp_wavs, norm_temp_flux)
 
     chi2 = np.sum((norm_interp_temp_flux - norm_obs_flux.value) ** 2)
     return chi2
+
+
+def save_continuum_normalized_templates(template_list, savedir, get_mask = full_spec_mask):
+    normalized_template_list = []
+    for template_filename in template_list:
+        temp_wavs, temp_fluxes = get_template_data(template_filename, get_mask=get_mask)
+        _, temp_norm_flux = get_norm_values(temp_wavs, temp_fluxes)
+        normalized_filename = os.path.join(savedir, template_filename.split('/')[-1])
+        normalized_data = np.array([temp_wavs, temp_norm_flux]).T
+        with open(normalized_filename,'w') as f:
+            np.savetxt(f, normalized_data)
+        normalized_template_list.append(normalized_filename)
+    return normalized_template_list
 
 
 def get_bestfit(wavs, fluxes, template_list, get_mask=full_spec_mask, v=0):
